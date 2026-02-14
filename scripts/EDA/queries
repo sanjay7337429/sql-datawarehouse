@@ -69,5 +69,53 @@ from gold_1.dim_customers c
 left join gold_1.fact_sales s on c.customer_key=s.customer_key
 group by c.country
 
+-- Which 5 products generate the Highest revenue ?
 
+SELECT top 5 p.product_name,
+sum(f.sales_amount) as total_sales_prod
+from gold.dim_products p
+left join gold.fact_sales f
+on p.product_key = f.product_key
+group by p.product_name
+order by sum(f.sales_amount) desc;
+
+-- Find the top 10 Customers who have generated the highest revenue
+
+-- cust_key, first_name,last_name
+
+SELECT TOP 10
+c.customer_key,
+c.first_name,
+c.last_name,
+sum(f.sales_amount)
+from gold.dim_customers c
+left join gold.fact_sales f
+on c.customer_key = f.customer_key
+group by 
+c.customer_key,
+c.first_name,
+c.last_name
+order by sum(f.sales_amount) desc
+
+
+
+
+
+
+
+
+
+-- Generat a report that shows all key metrics of the business
+
+SELECT 'Total sales' as measure_name, SUM(sales_amount) as measure_value from gold.fact_sales
+union
+SELECT 'Average price' as measure_name, avg(price) as measure_value from gold.fact_sales
+union
+SELECT 'Total Qty' as measure_name,  SUM(quantity) as measure_value from gold.fact_sales
+union
+SELECT 'Total Orders' as measure_name, count(DISTINCT Order_number) as measure_value from gold.fact_sales
+union
+SELECT 'Total Products' as measure_name, count(DISTINCT product_name) as measure_value from gold.dim_products
+union
+SELECT 'Total Customer' as measure_name, count(DISTINCT customer_key) as measure_value from gold.dim_customers
 
