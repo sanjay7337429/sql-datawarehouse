@@ -1,0 +1,37 @@
+--product-report
+
+
+
+with base_query as (
+select p.product_key,p.product_name,p.category,p.subcategory,p.cost,f.order_date,f.order_number,f.customer_key,f.sales_amount,f.quantity	
+from gold_1.dim_products p
+left join gold_1.fact_sales f on p.product_key=f.product_key
+where f.order_date is   not null
+),cte2 as(
+select 
+product_key,product_name,category,subcategory,cost,
+DATEDIFF(month,min(order_date),max(order_date)) as lifespan,
+max(order_date) as last_order_date,
+count( distinct order_number) as total_orders,
+count(distinct customer_key) as total_customers,
+sum(sales_amount) as total_revenue,
+sum(quantity) as total_quantity,
+avg((sales_amount)/(quantity))as avg_selling_price
+from base_query
+group by product_key,product_name,category,subcategory,cost
+)
+select
+product_key,product_name,category,subcategory,cost,
+last_order_date,
+DATEDIFF(month,last_order_date,GETDATE()) as receny_in_months,
+case when total_revenue>50000 then 'highperformer'
+when total_revenue>10000 then 'midperformer'
+else 'lowperformer'
+end as product_segment,lifespan,total_orders,total_customers,total_quantity,avg_selling_price
+total_revenue,
+case when total_revenue=0 then 0
+else total_revenue/total_orders  end as avg_order_revenue,
+case when lifespan=0 then total_revenue
+else total_revenue/lifespan
+ end as avg_monthly_revenue
+from cte2
